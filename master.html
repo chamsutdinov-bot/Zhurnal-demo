@@ -39,6 +39,11 @@ h1{margin:4px 0 0;font-size:clamp(28px,4.6vmax,56px);font-weight:700;line-height
 .tile.inst{background:linear-gradient(180deg,rgba(64,170,255,.92),rgba(30,90,235,.88));border-color:rgba(255,255,255,.45)}
 .tile.inst small,.tile.inst b{color:#fff}
 .tile.out{opacity:.62}
+.env{--eh:clamp(36px,4.6vmax,72px);position:relative;vertical-align:middle;margin:calc((22px - var(--eh))/2) 0 calc((22px - var(--eh))/2) 14px;display:inline-flex;width:calc(var(--eh)*1.45);height:var(--eh);border-radius:14px;background:linear-gradient(180deg,#4ed17d,#2a9453);border:1px solid #b4f2c9;color:#fff;font-size:calc(var(--eh)*.62);align-items:center;justify-content:center;text-transform:none;box-shadow:0 0 24px #3ddc7acc,inset 0 2px 0 rgba(255,255,255,.45);animation:envp 1.6s ease-in-out infinite}
+.env u{position:absolute;top:-9px;right:-9px;background:#e23d3d;color:#fff;border-radius:50%;min-width:28px;height:28px;font-size:16px;text-decoration:none;display:flex;align-items:center;justify-content:center;font-weight:700}
+@keyframes envp{50%{transform:scale(1.07);box-shadow:0 0 40px #3ddc7a}}
+.evm{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:8px 0 14px}.evm button{padding:clamp(14px,2vmax,24px);border-radius:18px;font-size:clamp(17px,2.2vmax,26px);font-weight:600}.evm button.on{background:linear-gradient(180deg,rgba(76,196,110,.95),rgba(31,157,69,.9));color:#fff;border-color:rgba(255,255,255,.45)}
+.badge.nwb{background:#4cc46e;color:#0e2a17;right:auto;left:14px}.card.nw{border-color:#7fe3a5;box-shadow:0 0 22px rgba(61,220,122,.45)}.nwt{color:#7fe3a5;font-weight:700;font-size:clamp(13px,1.6vmax,19px);margin-bottom:4px}
 .badge{position:absolute;top:12px;right:14px;background:#ff9f1c;color:#1b1713;font-weight:700;border-radius:999px;padding:6px 14px;font-size:clamp(13px,1.5vmax,19px)}
 .hint{font-size:clamp(13px,1.6vmax,20px);color:#a69f95}
 .btn{padding:14px 26px;border-radius:18px;font-weight:700;font-size:clamp(16px,2vmax,24px)}
@@ -111,7 +116,7 @@ h1{margin:4px 0 0;font-size:clamp(28px,4.6vmax,56px);font-weight:700;line-height
 }
 #app.home{height:100vh;height:100dvh;overflow:hidden}
 #app.home .grid{min-height:0;grid-auto-rows:unset;flex:1 1 0;overflow:hidden}
-#app.home .tile{min-height:0;padding:6px;gap:4px;border-radius:min(28px,12%);container-type:size}
+#app.home .tile{min-height:0;padding:6px;gap:4px;border-radius:min(28px,3.6vmax);container-type:size}
 #app.home .tile b{font-size:var(--tb,28px);font-size:clamp(14px,min(30cqh,15cqw),46px);line-height:1.1}
 #app.home .tile small{font-size:var(--ts,14px);font-size:clamp(10px,min(14cqh,7cqw),22px)}
 #ptr{position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:50%;transform:translate(-50%,-70px);opacity:0;background:rgba(40,36,32,.95);color:#f1ece5;border:1px solid rgba(255,255,255,.22);border-radius:22px;padding:9px 18px;font-size:16px;font-weight:600;z-index:60;pointer-events:none;transition:transform .2s,opacity .2s;box-shadow:0 6px 18px rgba(0,0,0,.4);white-space:nowrap}
@@ -122,7 +127,7 @@ h1{margin:4px 0 0;font-size:clamp(28px,4.6vmax,56px);font-weight:700;line-height
 .mt .plus{background:linear-gradient(180deg,rgba(76,196,110,.95),rgba(31,157,69,.9));color:#fff;font-size:24px;border-color:rgba(255,255,255,.4)}
 .mt.add{border-style:dashed}.mt.add input{font-weight:500}
 </style>
-<script>var BUILD="20261118110355"</script>
+<script>var BUILD="20261119182702"</script>
 <script>
 try{var _t=JSON.parse(localStorage.getItem("uchet_theme")||"null");}catch(e){}
 </script>
@@ -398,21 +403,22 @@ function mutate(c,fn){
 }
 
 /* ===== данные и очередь записи ===== */
-let staff={},orders={},stage={},logs={};          // базовые снимки с сервера
+let staff={},orders={},stage={},logs={},feed={};          // базовые снимки с сервера
 let pend=[];try{pend=JSON.parse(localStorage.getItem("m_q")||"[]")}catch(e){}
 const savePend=()=>{try{localStorage.setItem("m_q",JSON.stringify(pend))}catch(e){}};
 function deepMerge(t,s){for(const k in s){const v=s[k];if(v===null)delete t[k];else if(typeof v==="object"&&!Array.isArray(v)){if(typeof t[k]!=="object"||t[k]===null||Array.isArray(t[k]))t[k]={};deepMerge(t[k],v)}else t[k]=v}return t}
-let L={staff:{},orders:{},stage:{},log:{}};     // с учётом ещё не отправленного
+let L={staff:{},orders:{},stage:{},log:{},feed:{}};     // с учётом ещё не отправленного
 function rebuild(){
-  L.staff=JSON.parse(JSON.stringify(staff));L.orders={...orders};L.stage=JSON.parse(JSON.stringify(stage));
+  L.staff=JSON.parse(JSON.stringify(staff));L.orders={...orders};L.feed=JSON.parse(JSON.stringify(feed));L.stage=JSON.parse(JSON.stringify(stage));
   L.log={};for(const c in logs)Object.assign(L.log,logs[c]);
   for(const op of pend){
     if(op.k==="ev"){const o=L.log[op.id]||(L.log[op.id]={});Object.assign(o,op.d)}
     else if(op.k==="ms"){const t=L.stage[op.o]||(L.stage[op.o]={});deepMerge(t,op.m)}
     else if(op.k==="ms0"){delete L.stage[op.o]}
     else if(op.k==="st"){if(op.d===null)delete L.staff[op.id];else L.staff[op.id]=op.d}
+    else if(op.k==="fd"){L.feed[op.id]={...(L.feed[op.id]||{}),...op.d}}
   }
-  for(const k in L.stage){if(!L.orders[k]&&L.stage[k].no)L.orders[k]={no:L.stage[k].no,fn:"",ln:"",v:1}}
+  for(const k in L.stage){if(!L.orders[k]&&L.stage[k].no)L.orders[k]={no:L.stage[k].no,fn:"",ln:"",mt:L.stage[k].mt||"",v:1}}
 }
 let flushing=false,netErr="";
 async function flush(){
@@ -424,8 +430,9 @@ async function flush(){
       else if(op.k==="ms")await mutate("mstage",o=>{deepMerge(o[op.o]||(o[op.o]={}),op.m)});
       else if(op.k==="ms0")await mutate("mstage",o=>{delete o[op.o]});
       else if(op.k==="st")await mutate("mstaff",o=>{if(op.d===null)delete o[op.id];else o[op.id]=op.d});
+      else if(op.k==="fd")await mutate("mfeed",o=>{o[op.id]={...(o[op.id]||{}),...op.d}});
       pend.shift();savePend();netErr="";
-      if(cache.mstaff)staff=cache.mstaff.obj;if(cache.mstage)stage=cache.mstage.obj;if(op.k==="ev"&&cache["mlog_"+op.ym])logs[op.ym]=cache["mlog_"+op.ym].obj;
+      if(cache.mfeed)feed=cache.mfeed.obj;if(cache.mstaff)staff=cache.mstaff.obj;if(cache.mstage)stage=cache.mstage.obj;if(op.k==="ev"&&cache["mlog_"+op.ym])logs[op.ym]=cache["mlog_"+op.ym].obj;
     }
   }catch(e){netErr=e.auth?"auth":"net";if(e.auth){try{localStorage.removeItem(KEYN)}catch(x){}login("Войдите снова")}}
   flushing=false;rebuild();paintSync();
@@ -439,8 +446,8 @@ const months=()=>{const n=new Date();const p=new Date(n.getFullYear(),n.getMonth
 async function pull(){
   try{
     const m=months();
-    const rs=await Promise.all([load("mstaff"),load("orders"),load("mstage"),load("mlog_"+m[0]),load("mlog_"+m[1])]);
-    staff=rs[0].obj;orders=rs[1].obj;stage=rs[2].obj;logs={};logs[m[0]]=rs[3].obj;logs[m[1]]=rs[4].obj;
+    const rs=await Promise.all([load("mstaff"),load("orders"),load("mstage"),load("mlog_"+m[0]),load("mlog_"+m[1]),load("mfeed")]);
+    feed=rs[5].obj;staff=rs[0].obj;orders=rs[1].obj;stage=rs[2].obj;logs={};logs[m[0]]=rs[3].obj;logs[m[1]]=rs[4].obj;
     saveSnap();
     if(rs.some(r=>r.changed)||true){rebuild();autoClose();draw()}
     netErr=pend.length?netErr:"";
@@ -451,10 +458,11 @@ async function pull(){
 /* ===== вычисления ===== */
 const mEvents=(mid,d)=>Object.values(L.log).filter(e=>e.m===mid&&e.d===d).sort((a,b)=>a.ts-b.ts);
 function dayState(mid,d){
-  const ev=mEvents(mid,d).filter(e=>["in","out","autoout","inst_out"].includes(e.ty));
+  const ev=mEvents(mid,d).filter(e=>["in","out","autoout","inst_out","inst_conf"].includes(e.ty));
   const last=ev[ev.length-1];if(!last)return{s:"none"};
   if(last.ty==="in")return{s:"in",ts:last.ts};
   if(last.ty==="inst_out")return{s:"inst",ts:last.ts};
+  if(last.ty==="inst_conf")return{s:"idone",ts:last.ts};
   return{s:"out",ts:last.ts,auto:last.ty==="autoout"};
 }
 function pendingConf(mid){
@@ -472,6 +480,8 @@ function statusOf(o){
   if(c==="rasp"&&!st.start)return["Не начат","n"];
   return[STAGES.find(x=>x[0]===c)[1],""];
 }
+const pendFeed=()=>Object.keys(L.feed).filter(k=>!L.feed[k].to).sort((a,b)=>(L.feed[a].ts||0)-(L.feed[b].ts||0));
+const newFor=m=>Object.keys(L.stage).filter(o=>L.orders[o]&&L.stage[o].to===m&&!L.stage[o].tk);
 const ordName=o=>{const x=L.orders[o]||{};return"№"+(x.no||"?")+" · "+((x.fn||"")+" "+(x.ln||"")).trim()};
 const ordSub=o=>{const x=L.orders[o]||{};return[x.mt,x.sl?x.sl+" слэб.":"",x.date].filter(Boolean).join(" · ")};
 function workOrders(){ // заказы, добавленные мастерами и ещё не закрытые установкой
@@ -514,14 +524,15 @@ const dateStr=()=>{const d=new Date();return days[d.getDay()]+", "+d.getDate()+"
 function drawHome(){
   const today=ymd(Date.now()),ids=Object.keys(L.staff).sort((a,b)=>(L.staff[a].o||0)-(L.staff[b].o||0));
   const tiles=ids.map(id=>{
-    const m=L.staff[id],s=dayState(id,today),pc=pendingConf(id).length;
+    const m=L.staff[id],s=dayState(id,today),pc=pendingConf(id).length,nw=newFor(id).length;
     let cls="glass",sub="Нажмите — «Я пришёл»";
     if(s.s==="in"){cls="in";sub="Пришёл в "+hm(s.ts)}
     else if(s.s==="inst"){cls="inst";sub="На установке"}
+    else if(s.s==="idone"){cls="in";sub="Установка завершена в "+hm(s.ts)}
     else if(s.s==="out"){cls="glass out";sub=s.auto?"Забыл отметить уход":"Ушёл в "+hm(s.ts)}
-    return`<button class="tile ${cls}" data-m="${id}">${pc?`<span class="badge">Подтвердить установку: ${pc}</span>`:""}<b>${esc(m.n)}</b><small>${sub}</small></button>`;
+    return`<button class="tile ${cls}" data-m="${id}">${pc?`<span class="badge">Подтвердить установку: ${pc}</span>`:""}${nw?`<span class="badge nwb">🆕 Новый заказ: ${nw}</span>`:""}<b>${esc(m.n)}</b><small>${sub}</small></button>`;
   }).join("");
-  $("app").innerHTML=`<div class="top"><div><div class="cap">Цех · Журнал</div><h1>Нажмите своё имя</h1></div><div class="clock"><b id="clk">${hm(Date.now())}</b><span>${dateStr()}</span></div></div>
+  $("app").innerHTML=`<div class="top"><div><div class="cap">Цех · Журнал${pendFeed().length?`<button class="env" data-a="env" aria-label="Новый заказ">✉<u>${pendFeed().length}</u></button>`:""}</div><h1>Нажмите своё имя</h1></div><div class="clock"><b id="clk">${hm(Date.now())}</b><span>${dateStr()}</span></div></div>
   <div class="grid">${tiles||'<div class="hint">Мастеров пока нет. Нажмите ⚙︎ внизу справа и добавьте имена.</div>'}</div>
   <div class="hint">Один раз — «Я пришёл», плитка станет зелёной. Два раза подряд — ваша страница с заказами.</div>`;
   fitGrid();
@@ -533,6 +544,8 @@ function instPills(o){
   const a=done?`<button class="d" disabled>✓ Установка</button>`:(out||(i&&i.status==="out"))?`<button class="i" ${out?"disabled":`data-a="instone" data-o="${o}"`}>${out?"На установке":"Установка"}</button>`:`<button data-a="instone" data-o="${o}">Установка</button>`;
   const b=done?`<button disabled>Частично завершён</button>`:tails?`<button class="p" disabled>Частично завершён</button>`:`<button data-a="tails" data-o="${o}">Частично завершён</button>`;
   const c=done?`<button class="d" disabled>✓ Завершён</button>`:`<button class="f" data-a="conf" data-o="${o}">Завершён</button>`;
+  const mine=!done&&i&&i.conf&&i.conf[V.m]&&i.conf[V.m].full&&i.status==="out";
+  if(mine)return`<button class="d" disabled>✓ Установка</button>`+b+`<button class="d" disabled>✓ Завершён · ждём остальных</button>`;
   return a+b+c;
 }
 function cardHtml(o){
@@ -542,7 +555,8 @@ function cardHtml(o){
     if(k===cur)return`<button class="c" data-a="qstage" data-o="${o}" data-k="${k}">${SHORT[k]}</button>`;
     return`<button disabled>${SHORT[k]}</button>`;
   }).join("")+instPills(o);
-  return`<div class="card glass"><div class="no">${esc((L.orders[o]||{}).no||"")}</div><div class="tx"><b>${esc(ordName(o).replace(/^№[^·]*· /,""))}</b><div>${esc(ordSub(o))}</div></div><div class="stp">${strip}</div></div>`;
+  const isNw=st.to&&st.to===V.m&&!st.tk;
+  return`<div class="card glass${isNw?" nw":""}"><div class="no">${esc((L.orders[o]||{}).no||"")}</div><div class="tx">${isNw?'<div class="nwt">🆕 Новый заказ от начальника цеха</div>':""}<b>${esc(ordName(o).replace(/^№[^·]*· /,""))}</b><div>${esc(ordSub(o))}</div></div><div class="stp">${strip}</div></div>`;
 }
 function fitGrid(){
   const g=document.querySelector("#app.home .grid");if(!g)return;const t=g.querySelectorAll(".tile"),n=t.length;if(!n)return;
@@ -559,10 +573,10 @@ function openMaster(id){V={n:"master",m:id};q="";draw();scrollTo(0,0)}
 function drawMaster(){
   const id=V.m,m=L.staff[id];if(!m){V={n:"home"};return draw()}
   const today=ymd(Date.now()),s=dayState(id,today),pc=pendingConf(id);
-  const stTxt=s.s==="in"?"Пришёл в "+hm(s.ts):s.s==="out"?(s.auto?"Забыл отметить уход":"Ушёл в "+hm(s.ts)):s.s==="inst"?"Сегодня установка":"Приход не отмечен";
-  const list=workOrders().sort((a,b)=>pc.includes(b)-pc.includes(a));
+  const stTxt=s.s==="in"?"Пришёл в "+hm(s.ts):s.s==="out"?(s.auto?"Забыл отметить уход":"Ушёл в "+hm(s.ts)):s.s==="inst"?"Сегодня установка":s.s==="idone"?"Установка завершена в "+hm(s.ts):"Приход не отмечен";
+  const nwL=newFor(id),list=workOrders().sort((a,b)=>(nwL.includes(b)-nwL.includes(a))||(pc.includes(b)-pc.includes(a)));
   $("app").innerHTML=`<div class="top"><div><div class="cap">${esc(stTxt)}</div><h1>${esc(m.n)}</h1></div>
-  <div class="bar"><button class="btn glass" data-a="home">← Назад</button>${s.s==="in"?'<button class="btn r" data-a="leave">Я ушёл</button>':s.s!=="inst"?'<button class="btn g" data-a="arrive">Я пришёл</button>':""}</div></div>
+  <div class="bar"><button class="btn glass" data-a="home">← Назад</button>${s.s==="in"?'<button class="btn r" data-a="leave">Я ушёл</button>':s.s!=="inst"&&s.s!=="idone"?'<button class="btn g" data-a="arrive">Я пришёл</button>':""}</div></div>
   ${false?`<div class="list">${pc.map(o=>`<div class="card glass" style="border-color:#ff9f1c"><div class="no">${esc((L.orders[o]||{}).no||"")}</div><div class="tx"><b>Подтвердите установку · ${esc(ordName(o))}</b><div>Вы выезжали на этот заказ. Всё установлено?</div></div><button class="btn g" data-a="conf" data-o="${o}">Установлено</button><button class="btn o" data-a="tails" data-o="${o}">Не полностью</button></div>`).join("")}</div>`:""}
   <button class="btn a" data-a="addo" style="align-self:flex-start">＋ Добавить заказ</button>
   <div class="list">${list.map(cardHtml).join("")||'<div class="hint">Заказов пока нет.</div>'}</div>`;
@@ -605,6 +619,25 @@ function drawInst(){
   const qi=$("q");qi.oninput=()=>{q=qi.value;clearTimeout(qi._t);qi._t=setTimeout(()=>{$("il").innerHTML=instList(openOrders(q).slice(0,40),V.sel)},250)};
 }
 const instList=(list,sel)=>list.map(o=>`<div class="card glass sel ${sel[o]?"on":""}" data-a="pick" data-o="${o}"><div class="ck">${sel[o]?"✓":""}</div><div class="no">${esc((L.orders[o]||{}).no||"")}</div><div class="tx"><b>${esc(ordName(o).replace(/^№[^·]*· /,""))}</b><div>${esc(ordSub(o))}</div></div><span class="chip ${statusOf(o)[1]}">${statusOf(o)[0]}</span></div>`).join("")||'<div class="hint">Заказов не найдено</div>';
+function showEnv(sel){
+  const ids=pendFeed();if(!ids.length){$("ov").innerHTML="";draw();return}
+  const id=ids[0],e=L.feed[id],ms=Object.keys(L.staff).sort((a,b)=>(L.staff[a].o||0)-(L.staff[b].o||0));
+  const row=(t,v)=>v?`<div style="margin:4px 0"><span style="color:#a69f95">${t}</span> ${esc(v)}</div>`:"";
+  $("ov").innerHTML=`<div class="ov" style="background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);overflow:auto"><div class="box" style="width:min(94vw,880px);padding:26px;border-radius:28px;background:#25221f;border:1px solid rgba(255,255,255,.22);box-shadow:0 30px 80px rgba(0,0,0,.6);text-align:left"><h1 style="font-size:clamp(24px,3.4vmax,40px)">✉ Заказ №${esc(e.no||"?")}</h1>
+  <div style="font-size:clamp(16px,2vmax,24px);line-height:1.5">${row("Камень:",e.mt)}${row("Адрес:",e.ad)}${row("Телефон:",e.ph)}${ids.length>1?`<div style="margin-top:8px;color:#a69f95">Ещё конвертов: ${ids.length-1}</div>`:""}</div>
+  <div style="color:#a69f95;margin-top:6px">Кому отдать</div>
+  <div class="evm">${ms.map(m=>`<button class="glass${sel===m?" on":""}" data-pm="${m}">${esc(L.staff[m].n)}</button>`).join("")||'<span style="color:#a69f95">Мастеров нет — добавьте в ⚙︎</span>'}</div>
+  <div class="bar" style="gap:12px;margin-top:6px"><button class="btn g" id="egive" ${sel?"":"disabled"}>${sel?"Отдать мастеру "+esc(L.staff[sel].n):"Выберите мастера"}</button><button class="btn glass" id="eclose">Закрыть</button></div></div></div>`;
+  $("ov").querySelectorAll("[data-pm]").forEach(b=>b.onclick=()=>showEnv(b.dataset.pm));
+  $("eclose").onclick=()=>{$("ov").innerHTML="";draw()};
+  $("egive").onclick=()=>{if(!sel)return;
+    const oid=e.oid,t=Date.now(),ops=[{k:"fd",id,d:{to:sel,at:t}}];
+    if(oid&&L.orders[oid])ops.push({k:"ms",o:oid,m:{to:sel,...(L.stage[oid]?{}:{added:{ts:t,m:sel}})}});
+    else{const no=String(e.no||"").trim(),k=Object.keys(L.stage).find(x=>L.orders[x]&&String(L.orders[x].no||"").trim().toLowerCase()===no.toLowerCase())||"n"+no;if(no)ops.push({k:"ms",o:k,m:{to:sel,tk:null,...(L.stage[k]?{}:{added:{ts:t,m:sel},no,mt:e.mt||""})}})}
+    push(...ops);
+    if(pendFeed().length)showEnv();else{$("ov").innerHTML="";draw()}
+  };
+}
 function showAdd(m){
   const real=()=>Object.keys(L.orders).filter(k=>!L.orders[k].v);
   const find=v=>{v=String(v).trim().toLowerCase().replace(/^№\s*/,"");if(!v)return null;
@@ -635,7 +668,8 @@ function drawTails(){
 /* ===== действия ===== */
 function act(a,el){
   const m=V.m,today=ymd(Date.now());
-  if(a==="home"){V={n:"home"};draw();return}
+  if(a==="home"){if(V.n==="master"){const u=newFor(V.m).map(o=>({k:"ms",o,m:{tk:{ts:Date.now()}}}));if(u.length)push(...u)}V={n:"home"};draw();return}
+  if(a==="env"){adminPw().then(ok=>{if(ok)showEnv()});return}
   if(a==="mback"){V={n:"master",m};draw();return}
   if(a==="arrive"){push(evOp({m,ty:"in"}));return}
   if(a==="leave"){push(evOp({m,ty:"out"}));V={n:"home"};draw();return}
@@ -663,7 +697,7 @@ function act(a,el){
     const outs=Object.keys(i.out||{}),ks=outs.length?outs:Object.keys(conf),all=ks.every(x=>conf[x]);
     const status=all?(ks.every(x=>conf[x].full)?"done":"tails"):"out";
     push(evOp({m,ty:"inst_conf",o,full,note}),{k:"ms",o,m:{ins:{conf:{[m]:{ts:Date.now(),full,note}},status}}});
-    V={n:"master",m};draw();return;
+    V=a==="conf"?{n:"home"}:{n:"master",m};draw();return;
   }
   if(a==="rs"){const t=$("tn"),x=el.dataset.t;if(!t.value.includes(x))t.value=(t.value.trim()?t.value.trim()+", ":"")+x;return}
   if(a==="tails"){V={n:"tails",m,o:el.dataset.o};draw();return}
@@ -685,7 +719,7 @@ document.addEventListener("click",e=>{
     clearTimeout(tapT);tapM=id;
     tapT=setTimeout(()=>{tapT=null;tapM=null;
       const s=dayState(id,ymd(Date.now()));
-      if(s.s==="in")return;                                  // уже отмечен
+      if(s.s==="in"||s.s==="idone")return;                    // уже отмечен
       push(evOp({m:id,ty:"in"}));
     },320);
     return;
@@ -810,8 +844,8 @@ async function staffEditor(){
 $("gear").onclick=staffEditor;
 
 const SNAPK="m_snap";
-function saveSnap(){try{const o={};for(const k in orders){const x=orders[k];o[k]={no:x.no,fn:x.fn,ln:x.ln,mt:x.mt,sl:x.sl,date:x.date,ts:x.ts,us:x.us}}localStorage.setItem(SNAPK,JSON.stringify({staff,orders:o,stage,logs}))}catch(e){}}
-function loadSnap(){try{const j=JSON.parse(localStorage.getItem(SNAPK)||"null");if(j){staff=j.staff||{};orders=j.orders||{};stage=j.stage||{};logs=j.logs||{}}}catch(e){}}
+function saveSnap(){try{const o={};for(const k in orders){const x=orders[k];o[k]={no:x.no,fn:x.fn,ln:x.ln,mt:x.mt,sl:x.sl,date:x.date,ts:x.ts,us:x.us}}localStorage.setItem(SNAPK,JSON.stringify({staff,orders:o,stage,logs,feed}))}catch(e){}}
+function loadSnap(){try{const j=JSON.parse(localStorage.getItem(SNAPK)||"null");if(j){staff=j.staff||{};orders=j.orders||{};stage=j.stage||{};logs=j.logs||{};feed=j.feed||{}}}catch(e){}}
 function start(){loadSnap();rebuild();draw();pull().then(()=>{draw();flush()})}
 if(!key())login();else{start()}
 if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
